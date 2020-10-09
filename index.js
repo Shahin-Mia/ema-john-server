@@ -14,16 +14,25 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
     const collection = client.db(process.env.DB_NAME).collection("products");
+    const orderCollection = client.db(process.env.DB_NAME).collection("orders");
     console.log("Database connected")
 
     app.post('/addProduct', (req, res) => {
         const products = req.body;
         collection.insertMany(products)
             .then(result => {
-                console.log(result.insertedCount);
-                res.send(result);
+                res.send(result.insertedCount > 0);
             })
     })
+
+    app.post('/addOrders', (req, res) => {
+        const orderDetails = req.body;
+        orderCollection.insertOne(orderDetails)
+            .then(result => {
+                res.send(result.insertedCount > 0)
+            })
+    })
+
     app.get('/products', (req, res) => {
         collection.find({})
             .toArray((err, documents) => {
